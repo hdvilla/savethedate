@@ -36,6 +36,15 @@
     0%, 100% { opacity: 0.35; }
     50% { opacity: 0.7; }
   }
+  /* Video is portrait (9:16). On phones, fill the screen (cover).
+     On landscape/desktop, show the whole vertical frame (contain),
+     centered — the beach gradient fills the sides. */
+  @media (min-aspect-ratio: 3/4) {
+    .hero-video {
+      object-fit: contain !important;
+      object-position: 50% 50% !important;
+    }
+  }
 </style>
 </helmet>
 
@@ -44,7 +53,7 @@
   <!-- ONE shared background video, fixed behind sections 1 & 2 -->
   <div style="position: fixed; inset: 0; z-index: 0;">
     <div style="position: absolute; inset: 0; background: linear-gradient(180deg, #7fa8b8 0%, #a8c4cb 34%, #cfd9d4 48%, #e6d7b8 58%, #d9c39a 78%, #c3a87f 100%);"></div>
-    <video ref="{{ heroVideoRef }}" src="videos/hero.mp4" muted="{{ true }}" autoPlay="{{ true }}" playsInline="{{ true }}" preload="auto" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 100%; opacity: {{ heroVideoOpacity }}; transition: opacity 0.8s ease;"></video>
+    <video class="hero-video" ref="{{ heroVideoRef }}" src="videos/hero.mp4" muted="{{ true }}" autoPlay="{{ true }}" playsInline="{{ true }}" preload="auto" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 100%; opacity: {{ heroVideoOpacity }}; transition: opacity 0.8s ease;"></video>
   </div>
 
   <!-- ============ SECTION 1 — HERO ============ -->
@@ -143,7 +152,7 @@
   &quot;ringPauseTime&quot;: {&quot;editor&quot;: &quot;float&quot;, &quot;default&quot;: 4, &quot;min&quot;: 0, &quot;max&quot;: 120, &quot;step&quot;: 0.1, &quot;unit&quot;: &quot;s&quot;, &quot;section&quot;: &quot;Hero video&quot;},
   &quot;hotspotX&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 36, &quot;min&quot;: 0, &quot;max&quot;: 100, &quot;step&quot;: 1, &quot;unit&quot;: &quot;% of frame&quot;, &quot;section&quot;: &quot;Hero video&quot;},
   &quot;hotspotY&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 86, &quot;min&quot;: 0, &quot;max&quot;: 100, &quot;step&quot;: 1, &quot;unit&quot;: &quot;% of frame&quot;, &quot;section&quot;: &quot;Hero video&quot;},
-  &quot;runStartTime&quot;: {&quot;editor&quot;: &quot;float&quot;, &quot;default&quot;: 4, &quot;min&quot;: 0, &quot;max&quot;: 120, &quot;step&quot;: 0.1, &quot;unit&quot;: &quot;s&quot;, &quot;section&quot;: &quot;Countdown video&quot;},
+  &quot;runStartTime&quot;: {&quot;editor&quot;: &quot;float&quot;, &quot;default&quot;: 0, &quot;min&quot;: 0, &quot;max&quot;: 120, &quot;step&quot;: 0.1, &quot;unit&quot;: &quot;s&quot;, &quot;section&quot;: &quot;Countdown video&quot;},
   &quot;runEndTime&quot;: {&quot;editor&quot;: &quot;float&quot;, &quot;default&quot;: 14, &quot;min&quot;: 0, &quot;max&quot;: 120, &quot;step&quot;: 0.1, &quot;unit&quot;: &quot;s&quot;, &quot;section&quot;: &quot;Countdown video&quot;},
   &quot;venueName&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Jeremiah’s Garden&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Details&quot;},
   &quot;venueAddress&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;1329 W 12th St, Ogden, UT 84404, United States&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Details&quot;},
@@ -231,7 +240,7 @@ class Component extends DCLogic {
           this.heroVideo = el;
           this.phase = 'intro'; // intro: play 0 -> ring moment, hold; run: runStart -> end, loop
           const pauseA = () => this.props.ringPauseTime ?? 4;
-          const runStart = () => this.props.runStartTime ?? 4;
+          const runStart = () => this.props.runStartTime ?? 0;
           // React doesn't reliably set muted on the DOM node; without it autoplay is blocked
           el.muted = true;
           el.defaultMuted = true;
@@ -265,7 +274,7 @@ class Component extends DCLogic {
           });
           this.startRun = () => {
             this.phase = 'run';
-            if (el.currentTime < runStart()) el.currentTime = runStart();
+            el.currentTime = runStart();
             el.play();
           };
           // drive the single video from scroll position
